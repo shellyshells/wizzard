@@ -1,0 +1,340 @@
+// GameController.java
+package controller;
+
+import model.Character;
+import model.Choice;
+import model.Encounter;
+import model.Entity;
+import model.StoryNode;
+import model.Inventory;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Main controller class that manages the game state and progression
+ */
+public class GameController {
+    private model.Story story;
+    private Character character;
+    private StoryNode currentNode;
+    private Map<Integer, Boolean> visitedNodes;
+    private Map<Integer, Entity> defeatedEntities;
+    private int visionCount = 0; // Tracks number of visions experienced
+
+    /**
+     * Constructor with character type
+     * 
+     * @param story The story/narrative
+     * @param playerName The player's character name
+     * @param characterType The type of character (Prophet, Seer, Oracle, Scholar)
+     */
+    public GameController(model.Story story, String playerName, String characterType) {
+        this.story = story;
+        this.visitedNodes = new HashMap<>();
+        this.defeatedEntities = new HashMap<>();
+        
+        character = new Character(playerName);
+
+        // Adjust attributes based on character type
+        switch (characterType) {
+            case "Prophet":
+                character.modifyAttribute("wisdom", 2);
+                character.modifyAttribute("charisma", 2);
+                character.addItem("Prophet's Staff");
+                break;
+            case "Seer":
+                character.modifyAttribute("intuition", 3);
+                character.modifyAttribute("perception", 1);
+                character.addItem("Oracle's Eye");
+                character.addItem("Vision Incense");
+                break;
+            case "Oracle":
+                character.modifyAttribute("wisdom", 2);
+                character.modifyAttribute("intuition", 1);
+                character.modifyAttribute("charisma", 1);
+                character.addItem("Ancient Runes");
+                break;
+            case "Scholar":
+                character.modifyAttribute("knowledge", 3);
+                character.modifyAttribute("wisdom", 1);
+                character.addItem("Ancient Scroll");
+                character.addItem("Mystical Crystal");
+                break;
+            default:
+                // Default attributes
+                character.modifyAttribute("wisdom", 2);
+                character.modifyAttribute("energy", 2);
+                character.addItem("Protection Charm");
+                break;
+        }
+
+        startGame();
+    }
+
+    /**
+     * Simple constructor
+     * 
+     * @param story The story/narrative
+     * @param playerName The player's character name
+     */
+    public GameController(model.Story story, String playerName) {
+        this.story = story;
+        this.character = new Character(playerName);
+        this.visitedNodes = new HashMap<>();
+        this.defeatedEntities = new HashMap<>();
+        startGame();
+    }
+
+    /**
+     * Starts or restarts the game
+     */
+    public void startGame() {
+        // Initialize or reset visited nodes
+        if (visitedNodes == null) {
+            visitedNodes = new HashMap<>();
+        } else {
+            visitedNodes.clear();
+        }
+
+        // Reset to the first node of the story
+        currentNode = story.getStartingNode();
+    }
+
+    /**
+     * Processes the player's choice and moves to the next node
+     * 
+     * @param choiceIndex The index of the chosen option
+     * @return The next node, or null if the choice is invalid
+     */
+    public StoryNode makeChoice(int choiceIndex) {
+        if (choiceIndex < 0 || choiceIndex >= currentNode.getAvailableChoices().size()) {
+            return null;
+        }
+
+        Choice selectedChoice = currentNode.getAvailableChoices().get(choiceIndex);
+        
+        // Check if this choice requires an item
+        if (selectedChoice.hasItemRequirement() && 
+            !character.hasItem(selectedChoice.getRequiredItem())) {
+            return null; // Cannot make this choice without the required item
+        }
+        
+        int nextNodeId = selectedChoice.getDestinationNodeId();
+        currentNode = story.getNodeById(nextNodeId);
+
+        markNodeVisited(currentNode.getId());
+        
+        // Check for prophetic vision probability (10% chance)
+        if (Math.random() < 0.1 && visionCount < 3) {
+            // Trigger a vision if conditions are met
+            triggerPropheticVision();
+        }
+        
+        return currentNode;
+    }
+
+    /**
+     * Marks a node as visited
+     */
+    private void markNodeVisited(int nodeId) {
+        visitedNodes.put(nodeId, true);
+    }
+
+    /**
+     * Checks if a node has been visited
+     */
+    public boolean hasVisitedNode(int nodeId) {
+        return visitedNodes.getOrDefault(nodeId, false);
+    }
+    
+    /**
+     * Triggers a random prophetic vision
+     */
+    private void triggerPropheticVision() {
+        visionCount++;
+        // Logic for generating random visions would go here
+        // This would be integrated with the UI through an event system
+    }
+    
+    /**
+     * Handles an encounter between the player and an entity
+     * @param action The action taken by the player
+     * @return true if the player succeeds in the encounter
+     */
+    public boolean handleEncounter(String action) {
+        if (!currentNode.hasEntity()) {
+            return false;
+        }
+        
+        Entity entity = currentNode.getEntity();
+        Encounter encounter = new Encounter(character, entity);
+        
+        // Process the encounter based on action
+        boolean success = encounter.executeRound(action);
+        
+        if (success) {
+            // Player succeeded in their action
+            entity.reduceEnergy(2);
+            
+            // Give rewards for success
+            if ("insight".equals(action)) {
+                character.modifyAttribute("intuition", 1);
+            } else if ("knowledge".equals(action)) {
+                character.modifyAttribute("knowledge", 1);
+            }
+            
+            // Check if entity is overcome
+            if (entity.isOvercome()) {
+                defeatedEntities.put(entity.hashCode(), entity);
+                
+                // Special rewards for overcoming entities
+                character.modifyAttribute("wisdom", 1);
+                
+                // 25% chance to gain an item from the entity
+                if (Math.random() < 0.25) {
+                    giveRandomReward();
+                }
+            }
+        } else {
+            // Player failed their action
+            character.modifyAttribute("energy", -1);
+            
+            // If player has protection charm, use it to prevent fatal outcome
+            if (character.getAttribute("energy") <= 0 && character.hasItem("Protection Charm")) {
+                character.modifyAttribute("energy", 5);
+                character.removeItem("Protection Charm");
+            }
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Gives a random reward to the player
+     */
+    private void giveRandomReward() {
+        String[] possibleItems = {
+            "Sacred Water", "Vision Incense", "Protection Charm", "Mystical Crystal"
+        };
+        
+        int randomIndex = (int)(Math.random() * possibleItems.length);
+        character.addItem(possibleItems[randomIndex]);
+    }
+
+    /**
+     * Saves the current game state to a file
+     * 
+     * @param filePath The path to save the game
+     * @return true if save was successful
+     */
+    public boolean saveGame(String filePath) {
+        try (FileWriter writer = new FileWriter(filePath)) {
+            writer.write(character.getName() + "\n");
+            writer.write(currentNode.getId() + "\n");
+            // Save attributes and inventory
+            for (Map.Entry<String, Integer> attr : character.getAttributes().entrySet()) {
+                writer.write("attribute:" + attr.getKey() + ":" + attr.getValue() + "\n");
+            }
+            for (String item : character.getInventory()) {
+                writer.write("item:" + item + "\n");
+            }
+            return true;
+        } catch (IOException e) {
+            System.err.println("Error saving game: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Loads a game from a save file
+     * 
+     * @param filePath The path to the save file
+     * @return true if load was successful
+     */
+    public boolean loadGame(String filePath) {
+        try {
+            String[] lines = Files.readString(Paths.get(filePath)).split("\n");
+
+            if (lines.length >= 2) {
+                String characterName = lines[0];
+                int nodeId = Integer.parseInt(lines[1]);
+
+                // Create a new character
+                this.character = new Character(characterName);
+                
+                // Load attributes and inventory
+                for (int i = 2; i < lines.length; i++) {
+                    String line = lines[i];
+                    if (line.startsWith("attribute:")) {
+                        String[] parts = line.split(":");
+                        character.modifyAttribute(parts[1], Integer.parseInt(parts[2]));
+                    } else if (line.startsWith("item:")) {
+                        character.addItem(line.substring(5));
+                    }
+                }
+
+                // Set current node
+                this.currentNode = story.getNodeById(nodeId);
+                return true;
+            }
+            return false;
+        } catch (IOException | NumberFormatException e) {
+            System.err.println("Error loading game: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Changes the current story
+     * @param newStory The new story to load
+     */
+    public void changeStory(model.Story newStory) {
+        if (newStory == null) {
+            System.err.println("ERROR: Attempted to change to a null story");
+            return;
+        }
+        
+        try {
+            // Save current character
+            Character currentCharacter = this.character;
+            
+            // Change story
+            this.story = newStory;
+            
+            // Keep the same character with its stats
+            this.character = currentCharacter;
+            
+            // Reset visited nodes for this new story
+            if (visitedNodes == null) {
+                visitedNodes = new HashMap<>();
+            } else {
+                visitedNodes.clear();
+            }
+            
+            // Start at the first node of the new story
+            this.currentNode = story.getStartingNode();
+            
+        } catch (Exception e) {
+            System.err.println("ERROR when changing story: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Getters
+    public model.Story getStory() {
+        return story;
+    }
+
+    public Character getCharacter() {
+        return character;
+    }
+
+    public StoryNode getCurrentNode() {
+        return currentNode;
+    }
+}
