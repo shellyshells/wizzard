@@ -1,13 +1,28 @@
 // InventoryScreen.java
 package view;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.Window;
+import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
+
 import model.Character;
 import model.Inventory;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.util.List;
 
 /**
  * Screen for managing the player's inventory
@@ -43,7 +58,8 @@ public class InventoryScreen extends JDialog {
      * @param encounterMode Whether this is being used during an encounter
      */
     public InventoryScreen(Window parent, Character character, boolean encounterMode) {
-        super(parent, "Mystical Items", true);
+        // Fix for Java Swing compatibility
+        super(parent instanceof Frame ? (Frame) parent : null, "Mystical Items", true);
         this.character = character;
         this.encounterMode = encounterMode;
         

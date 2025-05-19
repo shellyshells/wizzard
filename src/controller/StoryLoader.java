@@ -1,16 +1,14 @@
 // StoryLoader.java
 package controller;
 
-import model.Choice;
-import model.Entity;
-import model.StoryNode;
-import model.Story;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+
+import model.Choice;
+import model.Entity;
+import model.Story;
+import model.StoryNode;
 
 /**
  * Loads story content from different sources
@@ -457,7 +455,7 @@ public class StoryLoader {
         StoryNode end = new StoryNode(2, "To Be Continued", 
                                      "Your adventure will continue in the next chapter...", true);
         
-        intro.addChoice(new Choice("Continue", end));
+        intro.addChoice(new Choice("Continue", 2));
         
         fallback.addNode(intro);
         fallback.addNode(end);
