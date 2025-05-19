@@ -30,6 +30,69 @@ public class CombatSystem {
         ATTACK_DAMAGE_VALUES.put("charismatic_approach", 2);
         ATTACK_DAMAGE_VALUES.put("knowledge_strike", 3);
         ATTACK_DAMAGE_VALUES.put("perceptive_counter", 4);
+        ATTACK_DAMAGE_VALUES.put("light_beam", 4);  // New light-based attack
+        ATTACK_DAMAGE_VALUES.put("nature_bond", 3); // New nature-based attack
+        ATTACK_DAMAGE_VALUES.put("healing_touch", 2); // New healing-based attack
+    }
+    
+    // Item effects and their descriptions
+    private static final Map<String, String> ITEM_EFFECTS = new HashMap<>();
+    static {
+        ITEM_EFFECTS.put("Prophet's Staff", "Enhances mystical abilities and wisdom-based attacks");
+        ITEM_EFFECTS.put("Oracle's Eye", "Improves prophetic insights and intuition-based actions");
+        ITEM_EFFECTS.put("Vision Incense", "Temporarily boosts perception and prophetic abilities");
+        ITEM_EFFECTS.put("Ancient Runes", "Enhances mystical knowledge and arcane power");
+        ITEM_EFFECTS.put("Ancient Scroll", "Improves knowledge-based attacks and wisdom");
+        ITEM_EFFECTS.put("Mystical Crystal", "Amplifies mystical energy and arcane abilities");
+        ITEM_EFFECTS.put("Protection Charm", "Shields from fatal damage once");
+        ITEM_EFFECTS.put("Sacred Water", "Restores energy and purifies negative effects");
+        ITEM_EFFECTS.put("Shadow Crystal", "Enhances shadow-based abilities and stealth");
+        ITEM_EFFECTS.put("Dark Essence", "Strengthens shadow attacks and resistance");
+        ITEM_EFFECTS.put("Void Shard", "Allows brief phase through reality");
+        ITEM_EFFECTS.put("Night's Whisper", "Improves stealth and shadow manipulation");
+        ITEM_EFFECTS.put("Eclipse Fragment", "Temporarily weakens enemy's perception");
+        ITEM_EFFECTS.put("Arcane Dust", "Enhances mystical abilities temporarily");
+        ITEM_EFFECTS.put("Spell Fragment", "Improves spell effectiveness");
+        ITEM_EFFECTS.put("Mana Essence", "Restores mystical energy");
+        ITEM_EFFECTS.put("Rune Shard", "Strengthens runic abilities");
+        ITEM_EFFECTS.put("Future Fragment", "Grants brief glimpse of enemy's next move");
+        ITEM_EFFECTS.put("Time Crystal", "Allows brief manipulation of combat timing");
+        ITEM_EFFECTS.put("Destiny Shard", "Increases chance of critical hits");
+        ITEM_EFFECTS.put("Scholar's Tome", "Improves knowledge-based attacks and wisdom");
+        ITEM_EFFECTS.put("Wisdom Fragment", "Temporarily boosts wisdom and insight");
+        ITEM_EFFECTS.put("Knowledge Crystal", "Enhances understanding of enemy weaknesses");
+        ITEM_EFFECTS.put("Memory Shard", "Allows recall of previous combat patterns");
+        ITEM_EFFECTS.put("Healer's Potion", "Restores significant energy");
+        ITEM_EFFECTS.put("Strength Elixir", "Temporarily boosts physical attacks");
+        ITEM_EFFECTS.put("Vitality Crystal", "Enhances natural healing");
+        ITEM_EFFECTS.put("Endurance Shard", "Increases energy capacity temporarily");
+        ITEM_EFFECTS.put("Shadow Sight", "Reveals hidden enemies and weak points");
+        ITEM_EFFECTS.put("Arcane Insight", "Improves understanding of magical attacks");
+        ITEM_EFFECTS.put("Future Glimpse", "Predicts enemy's next three moves");
+        ITEM_EFFECTS.put("Ancient Knowledge", "Reveals enemy's weaknesses and patterns");
+        ITEM_EFFECTS.put("Charm of Persuasion", "Enhances social and charismatic abilities");
+        ITEM_EFFECTS.put("Voice of Authority", "Strengthens command over mystical forces");
+        ITEM_EFFECTS.put("Silver Tongue", "Improves negotiation and social combat");
+        ITEM_EFFECTS.put("Diplomatic Grace", "Enhances peaceful resolution chances");
+        ITEM_EFFECTS.put("Inspiring Presence", "Boosts morale and combat effectiveness");
+        
+        // New Light Items
+        ITEM_EFFECTS.put("Radiant Crystal", "Channels pure light energy");
+        ITEM_EFFECTS.put("Sun's Blessing", "Brings warmth and clarity");
+        ITEM_EFFECTS.put("Dawn Fragment", "Heralds new beginnings");
+        ITEM_EFFECTS.put("Light's Grace", "Illuminates the path forward");
+        
+        // New Nature Items
+        ITEM_EFFECTS.put("Ancient Seed", "Connects with natural forces");
+        ITEM_EFFECTS.put("Forest Heart", "Harmonizes with life energy");
+        ITEM_EFFECTS.put("Earth's Gift", "Grounds and stabilizes");
+        ITEM_EFFECTS.put("Life Essence", "Nurtures and grows");
+        
+        // New Healing Items
+        ITEM_EFFECTS.put("Healing Light", "Restores and rejuvenates");
+        ITEM_EFFECTS.put("Peace Crystal", "Brings harmony and balance");
+        ITEM_EFFECTS.put("Hope Shard", "Inspires and uplifts");
+        ITEM_EFFECTS.put("Compassion's Touch", "Heals through understanding");
     }
     
     /**
@@ -48,9 +111,21 @@ public class CombatSystem {
         combatLog.add("Combat begins with " + opponent.getName() + "!");
         combatLog.add(opponent.getDescription());
         
+        // Log active item effects
+        logActiveItemEffects();
+        
         // Initialize cooldowns for special attacks
         cooldowns.put("mystic_blast", 0);
         cooldowns.put("prophetic_insight", 0);
+    }
+    
+    private void logActiveItemEffects() {
+        for (String item : player.getInventory()) {
+            String effect = ITEM_EFFECTS.get(item);
+            if (effect != null) {
+                combatLog.add("Your " + item + " is active: " + effect);
+            }
+        }
     }
     
     /**
@@ -65,7 +140,7 @@ public class CombatSystem {
         actions.add("focused_strike");
         actions.add("defensive_stance");
         
-        // Special actions based on attributes
+        // Special actions based on attributes and items
         if (player.getAttribute("intuition") >= 8 || player.hasItem("Oracle's Eye")) {
             actions.add("prophetic_insight");
         }
@@ -84,6 +159,21 @@ public class CombatSystem {
         
         if (player.getAttribute("perception") >= 8 || player.hasItem("Seer's Lens")) {
             actions.add("perceptive_counter");
+        }
+        
+        // New light-based actions
+        if (player.getAttribute("wisdom") >= 8 || player.hasItem("Radiant Crystal")) {
+            actions.add("light_beam");
+        }
+        
+        // New nature-based actions
+        if (player.getAttribute("intuition") >= 8 || player.hasItem("Ancient Seed")) {
+            actions.add("nature_bond");
+        }
+        
+        // New healing-based actions
+        if (player.getAttribute("charisma") >= 8 || player.hasItem("Healing Light")) {
+            actions.add("healing_touch");
         }
         
         // Filter out actions on cooldown
@@ -107,6 +197,9 @@ public class CombatSystem {
             case "charismatic_approach": return "Charismatic Approach";
             case "knowledge_strike": return "Knowledge Strike";
             case "perceptive_counter": return "Perceptive Counter";
+            case "light_beam": return "Light Beam";
+            case "nature_bond": return "Nature Bond";
+            case "healing_touch": return "Healing Touch";
             default: return actionId;
         }
     }
@@ -134,6 +227,12 @@ public class CombatSystem {
                 return "Exploit your knowledge of the opponent's weaknesses. Has a 3-turn cooldown.";
             case "perceptive_counter":
                 return "Use your keen perception to counter-attack. Has a 2-turn cooldown.";
+            case "light_beam": 
+                return "Channel pure light energy to damage and purify. Has a 2-turn cooldown.";
+            case "nature_bond": 
+                return "Connect with natural forces to strengthen and protect. Has a 3-turn cooldown.";
+            case "healing_touch": 
+                return "Use healing energy to restore and rejuvenate. Has a 2-turn cooldown.";
             default: 
                 return "Unknown action";
         }
@@ -258,13 +357,35 @@ public class CombatSystem {
         if (player.getAttribute("energy") <= 0) {
             combatLog.add("You've been defeated by " + opponent.getName() + ".");
             
-            // Check if player has a protection charm to prevent a fatal outcome
+            // Check for various protection items
             if (player.hasItem("Protection Charm")) {
                 combatLog.add("Your Protection Charm activates, shielding you from defeat!");
                 combatLog.add("The charm crumbles to dust as its magic is spent.");
                 player.removeItem("Protection Charm");
-                player.modifyAttribute("energy", 5); // Restore some energy
-                return false; // Combat continues
+                player.modifyAttribute("energy", 5);
+                return false;
+            }
+            
+            if (player.hasItem("Sacred Water")) {
+                combatLog.add("Your Sacred Water purifies the negative energy!");
+                combatLog.add("The water evaporates as it heals you.");
+                player.removeItem("Sacred Water");
+                player.modifyAttribute("energy", 8);
+                return false;
+            }
+            
+            if (player.hasItem("Healer's Potion")) {
+                combatLog.add("Your Healer's Potion restores your vitality!");
+                player.removeItem("Healer's Potion");
+                player.modifyAttribute("energy", 10);
+                return false;
+            }
+            
+            if (player.hasItem("Vitality Crystal")) {
+                combatLog.add("Your Vitality Crystal channels healing energy!");
+                player.removeItem("Vitality Crystal");
+                player.modifyAttribute("energy", 6);
+                return false;
             }
             
             return true;
@@ -288,25 +409,62 @@ public class CombatSystem {
      */
     private boolean calculateHitSuccess(String actionId) {
         int baseChance;
+        int itemBonus = 0;
         
         switch (actionId) {
             case "quick_attack":
-                baseChance = 16; // High chance to hit
+                baseChance = 16;
+                if (player.hasItem("Endurance Shard")) {
+                    itemBonus += 2;
+                }
                 break;
             case "focused_strike":
-                baseChance = 12; // Moderate chance to hit
+                baseChance = 12;
+                if (player.hasItem("Strength Elixir")) {
+                    itemBonus += 2;
+                }
                 break;
             case "mystic_blast":
-                baseChance = 14; // Good chance to hit
+                baseChance = 14;
+                if (player.hasItem("Mystical Crystal")) {
+                    itemBonus += 2;
+                }
                 break;
             case "charismatic_approach":
-                baseChance = 15; // Moderate chance to hit
+                baseChance = 15;
+                if (player.hasItem("Charm of Persuasion")) {
+                    itemBonus += 2;
+                }
                 break;
             case "knowledge_strike":
-                baseChance = 13; // Moderate chance to hit
+                baseChance = 13;
+                if (player.hasItem("Scholar's Tome")) {
+                    itemBonus += 2;
+                }
                 break;
             case "perceptive_counter":
-                baseChance = 17; // Very high chance to hit
+                baseChance = 17;
+                if (player.hasItem("Shadow Sight")) {
+                    itemBonus += 2;
+                }
+                break;
+            case "light_beam":
+                baseChance = 14;
+                if (player.hasItem("Radiant Crystal")) {
+                    itemBonus += 2;
+                }
+                break;
+            case "nature_bond":
+                baseChance = 15;
+                if (player.hasItem("Ancient Seed")) {
+                    itemBonus += 2;
+                }
+                break;
+            case "healing_touch":
+                baseChance = 16;
+                if (player.hasItem("Healing Light")) {
+                    itemBonus += 2;
+                }
                 break;
             default:
                 baseChance = 15;
@@ -333,10 +491,27 @@ public class CombatSystem {
             case "perceptive_counter":
                 attributeBonus = player.getAttribute("perception") / 2;
                 break;
+            case "light_beam":
+                attributeBonus = player.getAttribute("wisdom") / 2;
+                break;
+            case "nature_bond":
+                attributeBonus = player.getAttribute("intuition") / 2;
+                break;
+            case "healing_touch":
+                attributeBonus = player.getAttribute("charisma") / 2;
+                break;
         }
         
-        // Roll d20 + attribute bonus vs target number
-        return random.nextInt(20) + attributeBonus >= baseChance;
+        // Apply item bonuses for hit chance
+        if (player.hasItem("Future Glimpse")) {
+            itemBonus += 2;
+        }
+        if (player.hasItem("Ancient Knowledge")) {
+            itemBonus += 1;
+        }
+        
+        // Roll d20 + attribute bonus + item bonus vs target number
+        return random.nextInt(20) + attributeBonus + itemBonus >= baseChance;
     }
     
     /**
@@ -347,53 +522,113 @@ public class CombatSystem {
     private int calculateDamage(String actionId) {
         int baseDamage = ATTACK_DAMAGE_VALUES.getOrDefault(actionId, 1);
         int attributeBonus = 0;
+        int itemBonus = 0;
         
         // Apply attribute bonuses based on attack type
         switch (actionId) {
             case "quick_attack":
                 attributeBonus = player.getAttribute("perception") / 3;
+                if (player.hasItem("Endurance Shard")) {
+                    itemBonus += 2;
+                    combatLog.add("Your Endurance Shard enhances your quick attack!");
+                }
                 break;
             case "focused_strike":
                 attributeBonus = player.getAttribute("wisdom") / 3;
+                if (player.hasItem("Strength Elixir")) {
+                    itemBonus += 3;
+                    combatLog.add("Your Strength Elixir empowers your focused strike!");
+                }
                 break;
             case "mystic_blast":
                 attributeBonus = player.getAttribute("intuition") / 2;
-                // Bonus damage if player has Mystical Crystal
                 if (player.hasItem("Mystical Crystal")) {
-                    attributeBonus += 2;
+                    itemBonus += 2;
                     combatLog.add("Your Mystical Crystal amplifies the blast!");
+                }
+                if (player.hasItem("Arcane Dust")) {
+                    itemBonus += 1;
+                    combatLog.add("Arcane Dust enhances your mystical power!");
                 }
                 break;
             case "charismatic_approach":
                 attributeBonus = player.getAttribute("charisma") / 2;
-                // Bonus if player has Charm of Persuasion
                 if (player.hasItem("Charm of Persuasion")) {
-                    attributeBonus += 2;
+                    itemBonus += 2;
                     combatLog.add("Your Charm of Persuasion enhances your approach!");
+                }
+                if (player.hasItem("Silver Tongue")) {
+                    itemBonus += 1;
+                    combatLog.add("Your Silver Tongue makes your words more compelling!");
                 }
                 break;
             case "knowledge_strike":
                 attributeBonus = player.getAttribute("knowledge") / 2;
-                // Bonus if player has Scholar's Tome
                 if (player.hasItem("Scholar's Tome")) {
-                    attributeBonus += 2;
+                    itemBonus += 2;
                     combatLog.add("Your Scholar's Tome reveals a critical weakness!");
+                }
+                if (player.hasItem("Knowledge Crystal")) {
+                    itemBonus += 1;
+                    combatLog.add("Your Knowledge Crystal helps you exploit weaknesses!");
                 }
                 break;
             case "perceptive_counter":
                 attributeBonus = player.getAttribute("perception") / 2;
-                // Bonus if player has Seer's Lens
-                if (player.hasItem("Seer's Lens")) {
-                    attributeBonus += 2;
-                    combatLog.add("Your Seer's Lens helps you spot the perfect opening!");
+                if (player.hasItem("Shadow Sight")) {
+                    itemBonus += 2;
+                    combatLog.add("Your Shadow Sight helps you spot the perfect opening!");
+                }
+                if (player.hasItem("Future Glimpse")) {
+                    itemBonus += 1;
+                    combatLog.add("Your Future Glimpse guides your counter-attack!");
                 }
                 break;
+            case "light_beam":
+                attributeBonus = player.getAttribute("wisdom") / 2;
+                if (player.hasItem("Radiant Crystal")) {
+                    itemBonus += 2;
+                    combatLog.add("Your Radiant Crystal amplifies the light!");
+                }
+                if (player.hasItem("Sun's Blessing")) {
+                    itemBonus += 1;
+                    combatLog.add("The Sun's Blessing strengthens your beam!");
+                }
+                break;
+            case "nature_bond":
+                attributeBonus = player.getAttribute("intuition") / 2;
+                if (player.hasItem("Ancient Seed")) {
+                    itemBonus += 2;
+                    combatLog.add("The Ancient Seed connects you with nature's power!");
+                }
+                if (player.hasItem("Forest Heart")) {
+                    itemBonus += 1;
+                    combatLog.add("The Forest Heart harmonizes with your energy!");
+                }
+                break;
+            case "healing_touch":
+                attributeBonus = player.getAttribute("charisma") / 2;
+                if (player.hasItem("Healing Light")) {
+                    itemBonus += 2;
+                    combatLog.add("The Healing Light restores your vitality!");
+                }
+                if (player.hasItem("Peace Crystal")) {
+                    itemBonus += 1;
+                    combatLog.add("The Peace Crystal brings balance to your energy!");
+                }
+                break;
+        }
+        
+        // Apply general item bonuses
+        if (player.hasItem("Destiny Shard") && Math.random() < 0.2) {
+            itemBonus += 3;
+            combatLog.add("Your Destiny Shard guides your attack to a critical point!");
         }
         
         // Small random factor
         int randomFactor = random.nextInt(3);
         
-        return Math.max(1, baseDamage + attributeBonus + randomFactor);
+        return Math.max(1, baseDamage + attributeBonus + itemBonus + randomFactor);
     }
     
     /**

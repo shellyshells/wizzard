@@ -1,17 +1,40 @@
 // MainMenuUI.java
 package view;
 
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
 import controller.GameController;
 import controller.ProgressTracker;
 import controller.StoryLoader;
 import model.Story;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
 
 /**
  * The main menu interface of the application
@@ -30,12 +53,14 @@ public class MainMenuUI extends JFrame {
     private JPanel chapterSelectPanel;
     private JPanel nameEntryPanel;
     private JPanel characterSelectPanel;
+    private JPanel mapPanel;
 
     private Image backgroundImage;
     private int selectedChapter = 1;
     private CharacterPortrait selectedCharacter;
     private String selectedCharacterType = "Prophet"; // Default character type
     private ProgressTracker progressTracker;
+    private MapScreen mapScreen;
 
     /**
      * Constructor
@@ -88,6 +113,7 @@ public class MainMenuUI extends JFrame {
         JButton playButton = createStyledButton("Begin Your Journey");
         JButton loadButton = createStyledButton("Continue Journey");
         JButton helpButton = createStyledButton("Prophecy Guide");
+        JButton mapButton = createStyledButton("Path Map");
         JButton quitButton = createStyledButton("Leave This Realm");
         JButton settingsButton = createStyledButton("Settings");
 
@@ -95,6 +121,7 @@ public class MainMenuUI extends JFrame {
         playButton.addActionListener(e -> showChapterSelect());
         loadButton.addActionListener(e -> loadSavedGame());
         helpButton.addActionListener(e -> showHelp());
+        mapButton.addActionListener(e -> showMap());
         quitButton.addActionListener(e -> System.exit(0));
         settingsButton.addActionListener(e -> showSettings());
 
@@ -103,6 +130,7 @@ public class MainMenuUI extends JFrame {
         addButtonWithSpacing(buttonPanel, playButton);
         addButtonWithSpacing(buttonPanel, loadButton);
         addButtonWithSpacing(buttonPanel, helpButton);
+        addButtonWithSpacing(buttonPanel, mapButton);
         addButtonWithSpacing(buttonPanel, quitButton);
 
         // Center the button panel
@@ -127,6 +155,9 @@ public class MainMenuUI extends JFrame {
 
         // Character selection panel
         initCharacterSelectPanel();
+
+        // Initialize map panel
+        mapScreen = new MapScreen();
     }
 
     /**
@@ -590,5 +621,12 @@ public class MainMenuUI extends JFrame {
         JOptionPane.showMessageDialog(this,
                 "Settings will be available in a future update.",
                 "Settings", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void showMap() {
+        getContentPane().removeAll();
+        getContentPane().add(mapScreen);
+        revalidate();
+        repaint();
     }
 }

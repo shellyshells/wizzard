@@ -220,19 +220,15 @@ public class CombatScreen extends JDialog {
      * Updates the UI with current combat state
      */
     private void updateUI() {
-        // Update combat log
-        combatLog.setText("");
-        for (String logEntry : combatSystem.getCombatLog()) {
-            combatLog.append(logEntry + "\n\n");
-        }
-        combatLog.setCaretPosition(combatLog.getDocument().getLength());
-        
         // Update health bars
         playerHealthBar.setValue(player.getAttribute("energy"));
-        playerHealthBar.setString("Energy: " + player.getAttribute("energy"));
-        
         entityHealthBar.setValue(entity.getEnergy());
-        entityHealthBar.setString("Energy: " + entity.getEnergy());
+        
+        // Update health labels
+        combatLog.setText("");
+        for (String entry : combatSystem.getCombatLog()) {
+            combatLog.append(entry + "\n");
+        }
         
         // Update action buttons
         actionButtonsPanel.removeAll();
@@ -253,8 +249,35 @@ public class CombatScreen extends JDialog {
         
         // Add retreat button
         JButton retreatButton = createStyledButton("Attempt Retreat");
+        retreatButton.setEnabled(true);
         retreatButton.addActionListener(e -> attemptRetreat());
         actionButtonsPanel.add(retreatButton);
+        
+        // Check if combat is over
+        if (combatSystem.isCombatOver()) {
+            if (combatSystem.playerVictorious()) {
+                combatLog.append("\nVictory! You have overcome " + entity.getName() + "!");
+                // Grant rewards
+                grantVictoryRewards();
+            } else {
+                combatLog.append("\nDefeat! You have been overcome by " + entity.getName() + ".");
+            }
+            
+            // Disable action buttons but keep retreat enabled
+            for (JButton button : actionButtons.values()) {
+                button.setEnabled(false);
+            }
+            
+            // Add a "Continue" button
+            JButton continueButton = new JButton("Continue");
+            continueButton.setEnabled(true);
+            continueButton.addActionListener(e -> {
+                combatResult = combatSystem.playerVictorious();
+                latch.countDown();
+                dispose();
+            });
+            actionButtonsPanel.add(continueButton);
+        }
         
         actionButtonsPanel.revalidate();
         actionButtonsPanel.repaint();

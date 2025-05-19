@@ -288,22 +288,54 @@ public class GameController {
             character.modifyAttribute(attr, 1);
         }
         
-        // Chance for an item based on entity type
+        // Chance for an item based on entity type and player's items
         if (Math.random() < 0.4) {
             String item = determineSocialRewardItem(entity);
-            character.addItem(item);
+            if (item != null) {
+                character.addItem(item);
+            }
+        }
+        
+        // Special rewards based on player's items
+        if (character.hasItem("Ancient Knowledge")) {
+            // Gain insight into future encounters
+            if (Math.random() < 0.3) {
+                character.modifyAttribute("intuition", 1);
+            }
+        }
+        
+        if (character.hasItem("Future Glimpse")) {
+            // Learn from the encounter
+            if (Math.random() < 0.3) {
+                character.modifyAttribute("wisdom", 1);
+            }
+        }
+        
+        if (character.hasItem("Scholar's Tome")) {
+            // Gain knowledge from the interaction
+            if (Math.random() < 0.3) {
+                character.modifyAttribute("knowledge", 1);
+            }
         }
     }
     
     private String determineSocialRewardItem(Entity entity) {
+        // Base items based on entity type
         if (entity.getName().contains("Prophet") || entity.getName().contains("Seer")) {
-            return "Vision Incense";
+            String[] items = {"Vision Incense", "Future Fragment", "Time Crystal"};
+            return items[(int)(Math.random() * items.length)];
         } else if (entity.getName().contains("Scholar") || entity.getName().contains("Sage")) {
-            return "Ancient Scroll";
+            String[] items = {"Ancient Scroll", "Scholar's Tome", "Knowledge Crystal"};
+            return items[(int)(Math.random() * items.length)];
         } else if (entity.getName().contains("Mystic")) {
-            return "Mystical Crystal";
+            String[] items = {"Mystical Crystal", "Arcane Dust", "Spell Fragment"};
+            return items[(int)(Math.random() * items.length)];
+        } else if (entity.getName().contains("Shadow")) {
+            String[] items = {"Shadow Crystal", "Dark Essence", "Night's Whisper"};
+            return items[(int)(Math.random() * items.length)];
         } else {
-            return "Protection Charm";
+            String[] items = {"Protection Charm", "Sacred Water", "Healer's Potion"};
+            return items[(int)(Math.random() * items.length)];
         }
     }
     
@@ -313,6 +345,29 @@ public class GameController {
         // Add bonuses based on other attributes
         basePower += character.getAttribute("wisdom") / 2;
         basePower += character.getAttribute("intuition") / 2;
+        
+        // Add item bonuses
+        if (character.hasItem("Charm of Persuasion")) {
+            basePower += 3;
+        }
+        if (character.hasItem("Silver Tongue")) {
+            basePower += 2;
+        }
+        if (character.hasItem("Diplomatic Grace")) {
+            basePower += 2;
+        }
+        if (character.hasItem("Voice of Authority")) {
+            basePower += 2;
+        }
+        if (character.hasItem("Inspiring Presence")) {
+            basePower += 2;
+        }
+        if (character.hasItem("Ancient Knowledge")) {
+            basePower += 1;
+        }
+        if (character.hasItem("Future Glimpse")) {
+            basePower += 1;
+        }
         
         // Add random factor
         basePower += (int)(Math.random() * 6) + 1;
