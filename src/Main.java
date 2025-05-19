@@ -1,6 +1,7 @@
 // Main.java
+import javax.swing.SwingUtilities;
+
 import controller.StoryLoader;
-import javax.swing.*;
 import view.MainMenuUI;
 
 /**

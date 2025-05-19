@@ -10,7 +10,6 @@ import java.util.Map;
 
 import model.Character;
 import model.Choice;
-import model.Encounter;
 import model.Entity;
 import model.StoryNode;
 
@@ -170,16 +169,21 @@ public class GameController {
     private boolean shouldTriggerRandomCombat() {
         // Determine if we should trigger a random combat encounter
         // Only trigger if we haven't had too many combats already
-        if (combatEncounterCount >= 3) {
+        if (combatEncounterCount >= 5) {
             return false;
         }
         
         // Random chance based on area danger (implemented via story node ID ranges)
         // Higher IDs generally indicate deeper into the story - more danger
-        int dangerLevel = Math.min(3, currentNode.getId() / 5);
-        double randomCombatChance = 0.05 * dangerLevel; // 5-15% chance depending on node
+        int dangerLevel = Math.min(5, currentNode.getId() / 3);
+        double randomCombatChance = 0.15 * dangerLevel;
         
-        boolean shouldTrigger = Math.random() < randomCombatChance;
+        // Additional chance based on player's attributes
+        double attributeBonus = 0;
+        attributeBonus += character.getAttribute("intuition") * 0.01;
+        attributeBonus += character.getAttribute("perception") * 0.01;
+        
+        boolean shouldTrigger = Math.random() < (randomCombatChance + attributeBonus);
         
         if (shouldTrigger) {
             combatEncounterCount++;
@@ -198,6 +202,54 @@ public class GameController {
     }
     
     /**
+     * Creates a random combat encounter based on the current story context
+     * @return The entity to fight
+     */
+    private Entity createRandomCombatEncounter() {
+        String[] enemyTypes = {
+            "Shadow Wraith", "Mystic Guardian", "Ancient Prophet", "Corrupted Scholar",
+            "Void Walker", "Arcane Construct", "Time Weaver", "Knowledge Keeper"
+        };
+        
+        String[] enemyDescriptions = {
+            "A shadowy figure that seems to absorb light around it.",
+            "A mystical being wreathed in arcane energy.",
+            "An ancient seer who has seen too many futures.",
+            "A scholar whose pursuit of knowledge has corrupted them.",
+            "A being that exists between the planes of reality.",
+            "A magical construct created to guard ancient secrets.",
+            "A being that can manipulate the flow of time.",
+            "A guardian of forbidden knowledge."
+        };
+        
+        int index = (int)(Math.random() * enemyTypes.length);
+        String name = enemyTypes[index];
+        String description = enemyDescriptions[index];
+        
+        // Scale enemy power based on story progress
+        int baseInfluence = 5 + (currentNode.getId() / 2);
+        int baseEnergy = 10 + (currentNode.getId() / 2);
+        
+        // Add some randomness
+        int influence = baseInfluence + (int)(Math.random() * 5);
+        int energy = baseEnergy + (int)(Math.random() * 10);
+        
+        // Determine combat type based on enemy name
+        String combatType = "physical";
+        if (name.contains("Shadow") || name.contains("Void")) {
+            combatType = "shadow";
+        } else if (name.contains("Mystic") || name.contains("Arcane")) {
+            combatType = "mystical";
+        } else if (name.contains("Prophet") || name.contains("Time")) {
+            combatType = "prophet";
+        } else if (name.contains("Scholar") || name.contains("Knowledge")) {
+            combatType = "knowledge";
+        }
+        
+        return new Entity(name, influence, energy, description, combatType);
+    }
+    
+    /**
      * Handles an encounter between the player and an entity
      * @param action The action taken by the player
      * @return true if the player succeeds in the encounter
@@ -208,46 +260,64 @@ public class GameController {
         }
         
         Entity entity = currentNode.getEntity();
-        Encounter encounter = new Encounter(character, entity);
         
-        // Process the encounter based on action
-        boolean success = encounter.executeRound(action);
+        // If it's a combat entity, handle combat
+        if (entity.isCombatEntity()) {
+            return handleCombat();
+        }
+        
+        // Otherwise, handle as a social encounter
+        int playerPower = calculatePlayerPower(action);
+        int entityPower = entity.calculatePersuasionPower();
+        
+        boolean success = playerPower > entityPower;
         
         if (success) {
-            // Player succeeded in their action
-            entity.reduceEnergy(2);
-            
-            // Give rewards for success
-            if ("insight".equals(action)) {
-                character.modifyAttribute("intuition", 1);
-            } else if ("knowledge".equals(action)) {
-                character.modifyAttribute("knowledge", 1);
-            }
-            
-            // Check if entity is overcome
-            if (entity.isOvercome()) {
-                defeatedEntities.put(entity.hashCode(), entity);
-                
-                // Special rewards for overcoming entities
-                character.modifyAttribute("wisdom", 1);
-                
-                // 25% chance to gain an item from the entity
-                if (Math.random() < 0.25) {
-                    giveRandomReward();
-                }
-            }
-        } else {
-            // Player failed their action
-            character.modifyAttribute("energy", -1);
-            
-            // If player has protection charm, use it to prevent fatal outcome
-            if (character.getAttribute("energy") <= 0 && character.hasItem("Protection Charm")) {
-                character.modifyAttribute("energy", 5);
-                character.removeItem("Protection Charm");
-            }
+            // Grant rewards for successful social encounter
+            grantSocialRewards(entity);
         }
         
         return success;
+    }
+    
+    private void grantSocialRewards(Entity entity) {
+        // Random chance for attribute increase
+        if (Math.random() < 0.3) {
+            String[] attributes = {"charisma", "wisdom", "intuition"};
+            String attr = attributes[(int)(Math.random() * attributes.length)];
+            character.modifyAttribute(attr, 1);
+        }
+        
+        // Chance for an item based on entity type
+        if (Math.random() < 0.4) {
+            String item = determineSocialRewardItem(entity);
+            character.addItem(item);
+        }
+    }
+    
+    private String determineSocialRewardItem(Entity entity) {
+        if (entity.getName().contains("Prophet") || entity.getName().contains("Seer")) {
+            return "Vision Incense";
+        } else if (entity.getName().contains("Scholar") || entity.getName().contains("Sage")) {
+            return "Ancient Scroll";
+        } else if (entity.getName().contains("Mystic")) {
+            return "Mystical Crystal";
+        } else {
+            return "Protection Charm";
+        }
+    }
+    
+    private int calculatePlayerPower(String action) {
+        int basePower = character.getAttribute("charisma");
+        
+        // Add bonuses based on other attributes
+        basePower += character.getAttribute("wisdom") / 2;
+        basePower += character.getAttribute("intuition") / 2;
+        
+        // Add random factor
+        basePower += (int)(Math.random() * 6) + 1;
+        
+        return basePower;
     }
     
     /**
