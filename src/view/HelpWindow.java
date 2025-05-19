@@ -1,8 +1,21 @@
-// HelpWindow.java
+// HelpWindow.java - Updated with combat information
 package view;
 
-import java.awt.*;
-import javax.swing.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 /**
@@ -21,7 +34,7 @@ public class HelpWindow extends JDialog {
      */
     public HelpWindow(JFrame parent) {
         super(parent, "Prophecy Guide", true);
-        setSize(600, 500);
+        setSize(600, 600); // Made taller to accommodate more content
         setLocationRelativeTo(parent);
         initComponents();
     }
@@ -54,24 +67,39 @@ public class HelpWindow extends JDialog {
             "• Charisma: Your persuasiveness and ability to influence others\n" +
             "• Perception: Your awareness of subtle details and changes\n" +
             "• Knowledge: Your accumulated learning and understanding of ancient texts\n" +
-            "• Energy: Your spiritual and mental reserves for prophetic work");
+            "• Energy: Your spiritual and mental reserves for prophetic work and combat");
 
         addSection(mainPanel, "🎒 Item Management", 
             "Throughout your journey, you'll acquire various mystical items that can aid you:\n\n" +
             "• Sacred Water: Restores 2 Energy points when consumed\n" +
-            "• Mystical Crystal: Enhances visions and can store prophetic energy\n" +
+            "• Mystical Crystal: Enhances visions and amplifies mystical attacks in combat\n" +
             "• Protection Charm: Provides a one-time protection from fatal outcomes\n" +
-            "• Oracle's Eye: Helps see through deceptions and grants insight\n" +
-            "• Vision Incense: Can induce prophetic visions when used\n\n" +
+            "• Oracle's Eye: Helps see through deceptions and grants combat insight\n" +
+            "• Vision Incense: Can induce prophetic visions when used\n" +
+            "• Prophet's Staff: Enhances prophetic abilities and mystical combat attacks\n\n" +
             "Use your items wisely - some are consumable while others provide passive benefits.");
 
+        // New section for combat
+        addSection(mainPanel, "⚔️ Combat System", 
+            "When confronting hostile entities, you may enter combat. The combat system offers several actions:\n\n" +
+            "• Quick Attack: A swift strike with a high chance to hit but moderate damage\n" +
+            "• Focused Strike: A powerful attack that deals higher damage but may miss\n" +
+            "• Defensive Stance: Reduces damage from the next enemy attack by 50%\n" +
+            "• Mystic Blast: A powerful energy attack available to those with high wisdom\n" +
+            "• Prophetic Insight: Predict and counter enemy moves using your prophetic abilities\n\n" +
+            "Your attributes affect combat effectiveness - Perception improves accuracy, Wisdom and " +
+            "Intuition enhance mystical attacks, and Energy represents your combat health.\n\n" +
+            "Items can provide advantages in combat. For example, the Mystical Crystal amplifies " +
+            "Mystic Blast damage, while the Oracle's Eye enhances Prophetic Insight.");
+
         addSection(mainPanel, "⚔️ Encounters", 
-            "When you encounter significant entities or obstacles, you have several approaches:\n\n" +
+            "There are two types of encounters with entities:\n\n" +
+            "1. Traditional Encounters: Resolve through dialogue and persuasion using your attributes\n" +
+            "2. Combat Encounters: Direct confrontations using the combat system\n\n" +
+            "For traditional encounters, you have several approaches:\n" +
             "• Persuade: Use your charisma to convince or influence\n" +
             "• Insight: Rely on your intuition to perceive hidden truths\n" +
-            "• Knowledge: Apply your understanding of ancient texts and prophecies\n" +
-            "• Items: Use appropriate items from your inventory\n" +
-            "• Withdraw: Attempt to leave the encounter if it proves too challenging\n\n" +
+            "• Knowledge: Apply your understanding of ancient texts and prophecies\n\n" +
             "Different approaches work better in different situations. Learn to recognize when " +
             "each is most effective.");
 

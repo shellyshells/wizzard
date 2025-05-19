@@ -1,4 +1,4 @@
-// StoryNode.java
+// StoryNode.java - Updated with combat support
 package model;
 
 import java.util.ArrayList;
@@ -18,6 +18,7 @@ public class StoryNode {
     private Entity entity; // For nodes with character encounters
     private Map<String, Integer> requiredAttributes; // Attributes needed to unlock certain choices
     private String backgroundImage; // Path to background image for this node
+    private boolean combatTriggered; // Whether combat should be triggered at this node
 
     /**
      * Constructor for a story node
@@ -34,6 +35,7 @@ public class StoryNode {
         this.availableChoices = new ArrayList<>();
         this.isEnding = isEnding;
         this.requiredAttributes = new HashMap<>();
+        this.combatTriggered = false;
     }
     
     /**
@@ -83,6 +85,22 @@ public class StoryNode {
 
     public boolean hasEntity() {
         return entity != null;
+    }
+    
+    /**
+     * Sets whether combat is triggered at this node
+     * @param triggered Whether combat is triggered
+     */
+    public void setCombatTriggered(boolean triggered) {
+        this.combatTriggered = triggered;
+    }
+    
+    /**
+     * Checks if combat is triggered at this node
+     * @return true if combat is triggered
+     */
+    public boolean isCombatTriggered() {
+        return combatTriggered;
     }
     
     public void setBackgroundImage(String path) {

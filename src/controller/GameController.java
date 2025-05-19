@@ -1,12 +1,5 @@
-// GameController.java
+// GameController.java - Updated with combat system integration
 package controller;
-
-import model.Character;
-import model.Choice;
-import model.Encounter;
-import model.Entity;
-import model.StoryNode;
-import model.Inventory;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -14,6 +7,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+
+import model.Character;
+import model.Choice;
+import model.Encounter;
+import model.Entity;
+import model.StoryNode;
 
 /**
  * Main controller class that manages the game state and progression
@@ -25,6 +24,7 @@ public class GameController {
     private Map<Integer, Boolean> visitedNodes;
     private Map<Integer, Entity> defeatedEntities;
     private int visionCount = 0; // Tracks number of visions experienced
+    private int combatEncounterCount = 0; // Tracks number of combat encounters
 
     /**
      * Constructor with character type
@@ -103,6 +103,9 @@ public class GameController {
 
         // Reset to the first node of the story
         currentNode = story.getStartingNode();
+        
+        // Reset combat counter
+        combatEncounterCount = 0;
     }
 
     /**
@@ -124,10 +127,18 @@ public class GameController {
             return null; // Cannot make this choice without the required item
         }
         
+        // Check if the choice triggers combat
+        boolean triggersEncounter = selectedChoice.triggersEncounter();
+        
         int nextNodeId = selectedChoice.getDestinationNodeId();
         currentNode = story.getNodeById(nextNodeId);
 
         markNodeVisited(currentNode.getId());
+        
+        // Handle any random or triggered combat
+        if (shouldTriggerRandomCombat() || (triggersEncounter && currentNode.hasEntity())) {
+            currentNode.setCombatTriggered(true);
+        }
         
         // Check for prophetic vision probability (10% chance)
         if (Math.random() < 0.1 && visionCount < 3) {
@@ -150,6 +161,31 @@ public class GameController {
      */
     public boolean hasVisitedNode(int nodeId) {
         return visitedNodes.getOrDefault(nodeId, false);
+    }
+    
+    /**
+     * Determines if a random combat encounter should trigger
+     * @return true if random combat should occur
+     */
+    private boolean shouldTriggerRandomCombat() {
+        // Determine if we should trigger a random combat encounter
+        // Only trigger if we haven't had too many combats already
+        if (combatEncounterCount >= 3) {
+            return false;
+        }
+        
+        // Random chance based on area danger (implemented via story node ID ranges)
+        // Higher IDs generally indicate deeper into the story - more danger
+        int dangerLevel = Math.min(3, currentNode.getId() / 5);
+        double randomCombatChance = 0.05 * dangerLevel; // 5-15% chance depending on node
+        
+        boolean shouldTrigger = Math.random() < randomCombatChance;
+        
+        if (shouldTrigger) {
+            combatEncounterCount++;
+        }
+        
+        return shouldTrigger;
     }
     
     /**
@@ -215,6 +251,48 @@ public class GameController {
     }
     
     /**
+     * Handles a combat encounter with the entity in the current node
+     * @return true if the player is victorious, false if defeated or retreated
+     */
+    public boolean handleCombat() {
+        if (!currentNode.hasEntity()) {
+            return false;
+        }
+        
+        // Combat is handled by the UI layer
+        // This method exists as an interface for the UI to call
+        // We just mark the entity as a combat entity
+        currentNode.getEntity().setCombatEntity(true);
+        
+        return true; // Combat initiation successful
+    }
+    
+    /**
+     * Record the result of combat
+     * @param entity The entity that was fought
+     * @param victorious Whether the player was victorious
+     */
+    public void recordCombatResult(Entity entity, boolean victorious) {
+        if (victorious) {
+            defeatedEntities.put(entity.hashCode(), entity);
+            
+            // Increment combat stat if tracking
+            // character.incrementStat("combats_won");
+            
+            // Special rewards are handled by the CombatSystem
+        }
+    }
+    
+    /**
+     * Checks if there is a combat encounter triggered on the current node
+     * @return true if combat is triggered
+     */
+    public boolean hasCombatTriggered() {
+        return currentNode.isCombatTriggered() && currentNode.hasEntity() && 
+               currentNode.getEntity().isCombatEntity();
+    }
+    
+    /**
      * Gives a random reward to the player
      */
     private void giveRandomReward() {
@@ -243,6 +321,8 @@ public class GameController {
             for (String item : character.getInventory()) {
                 writer.write("item:" + item + "\n");
             }
+            // Save combat counter
+            writer.write("combats:" + combatEncounterCount + "\n");
             return true;
         } catch (IOException e) {
             System.err.println("Error saving game: " + e.getMessage());
@@ -267,6 +347,9 @@ public class GameController {
                 // Create a new character
                 this.character = new Character(characterName);
                 
+                // Reset combat counter
+                this.combatEncounterCount = 0;
+                
                 // Load attributes and inventory
                 for (int i = 2; i < lines.length; i++) {
                     String line = lines[i];
@@ -275,6 +358,8 @@ public class GameController {
                         character.modifyAttribute(parts[1], Integer.parseInt(parts[2]));
                     } else if (line.startsWith("item:")) {
                         character.addItem(line.substring(5));
+                    } else if (line.startsWith("combats:")) {
+                        combatEncounterCount = Integer.parseInt(line.substring(8));
                     }
                 }
 

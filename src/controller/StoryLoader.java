@@ -1,4 +1,4 @@
-// StoryLoader.java
+// StoryLoader.java - Final version with combat-enabled entities
 package controller;
 
 import java.io.IOException;
@@ -108,7 +108,6 @@ public class StoryLoader {
                 "The entrance to the Caves of Echo looms before you - a massive archway of natural stone, worn smooth by the elements. Strange symbols are carved around the entrance, similar to those in the Codex.\n\n" +
                 "As you step inside, the temperature drops noticeably. Your footsteps echo far longer than they should, each sound returning multiplied and distorted. The main passage branches in multiple directions, but a faint luminescence seems to guide you deeper into the mountain.\n\n" +
                 "The walls themselves are unusual - embedded with tiny crystals that catch and reflect light in mesmerizing patterns. As you proceed, you begin to hear whispers, as if the cave itself is speaking.");
-
         // Node 11: The Warden
         StoryNode node11 = new StoryNode(11, "The Whispering Warden", 
                 "The passage opens into a vast underground chamber. Stalactites hang like frozen waterfalls from the ceiling, and in the center floats a being unlike any you've ever seen.\n\n" +
@@ -177,15 +176,31 @@ public class StoryLoader {
 
         // Create entities
         Entity mystic = new Entity("The Mystic", 8, 10, 
-                "A wandering seer with kaleidoscope eyes and ancient knowledge. Their intentions are difficult to discern.");
+                "A wandering seer with kaleidoscope eyes and ancient knowledge. Their intentions are difficult to discern.", "mystical");
         
         Entity warden = new Entity("The Whispering Warden", 10, 15, 
-                "An ancient entity of light and shadow that guards the Crystal of Truth. It tests all who seek the Crystal with visions and riddles.");
+                "An ancient entity of light and shadow that guards the Crystal of Truth. It tests all who seek the Crystal with visions and riddles.", "mystical");
+        
+        // Add shadow warrior for combat encounter
+        Entity shadowWarrior = new Entity("Shadow Warrior", 7, 12,
+                "A humanoid figure composed entirely of shifting darkness. Wielding a blade that seems to be made of solidified shadow, it moves with uncanny speed and precision.", "shadow");
+        
+        // Add cave guardian for combat encounter
+        Entity caveGuardian = new Entity("Cave Guardian", 6, 10,
+                "A large, stone-like creature with glowing runes etched across its surface. It appears to have been animated by ancient magic to protect the sacred caverns.", "physical");
         
         // Add entities to nodes
         node8.setEntity(mystic);
         node11.setEntity(warden);
-
+        
+        // Add combat entities to nodes 7 and 10
+        node7.setEntity(shadowWarrior);
+        node10.setEntity(caveGuardian);
+        
+        // Mark certain entities as combat entities
+        shadowWarrior.setCombatEntity(true);
+        caveGuardian.setCombatEntity(true);
+        
         // Add choices to nodes
         node1.addChoice(new Choice("Consult the Council of Elders immediately", 2));
         node1.addChoice(new Choice("Seek guidance at the Temple of Seers first", 3));
@@ -292,8 +307,6 @@ public class StoryLoader {
                                           "\"It's beginning,\" Lyra whispers. \"The Harbinger's corruption spreads.\"\n\n" +
                                           "Other villagers back away in fear, but you approach cautiously, the Crystal still in your hand. As you near the fallen guard, the Crystal glows intensely, and the darkness seems to recoil from its light.");
             
-            // Create more nodes for Chapter 2...
-            
             // Node 4 - Using the Crystal
             StoryNode node4 = new StoryNode(4, "The Crystal's Power", 
                                           "You hold the Crystal over the afflicted guard. A beam of pure light extends from it, touching his forehead. The guard's back arches, and a shadowy mist begins to seep from his mouth and eyes, dissipating in the air.\n\n" +
@@ -307,6 +320,12 @@ public class StoryLoader {
                                           "\"Shadow Wraiths,\" Elder Thorne says grimly. \"Harbingers of what's to come. They cannot harm us physically, but their touch brings despair and fear.\"\n\n" +
                                           "The village defenders form a perimeter around the ritual site, but you can see the uncertainty in their eyes. These are not enemies they can fight with conventional weapons.");
             
+            // Create shadow wraith entity for combat
+            Entity shadowWraith = new Entity("Shadow Wraith", 6, 10,
+                                         "A semi-corporeal manifestation of the Harbinger's influence. It appears as a humanoid silhouette of pure darkness with tendrils of shadow flowing from its form.", "shadow");
+            shadowWraith.setCombatEntity(true);
+            node5.setEntity(shadowWraith);
+            
             // Node 6 - The Mystic Returns
             StoryNode node6 = new StoryNode(6, "An Unexpected Ally", 
                                           "Through the gathering shadows, a familiar figure approaches - the Mystic from the Whispering Woods. They stride confidently through the fog, seemingly unaffected by the Shadow Wraiths.\n\n" +
@@ -314,155 +333,22 @@ public class StoryLoader {
                                           "Elder Thorne eyes the newcomer suspiciously. \"Who is this?\"\n\n" +
                                           "Before you can answer, the Mystic produces a small crystal that glows with the same light as your larger Crystal of Truth. \"I am a keeper of the old knowledge, and I come to help.\"");
             
-            // Add more nodes for the rest of Chapter 2...
+            // Final part of createChapter2Story and closing of the class
             
-            // Node 7 - The Decision
-            StoryNode node7 = new StoryNode(7, "Trust or Suspicion", 
-                                          "Keeper Lyra stares at the Mystic intently. \"Few outside our order know of the Crystals. How did you come by this knowledge?\"\n\n" +
-                                          "The Mystic smiles enigmatically. \"I have walked many paths and learned many secrets. Some would call me friend, others enemy. What matters is that our goals align - to stop the Harbinger.\"\n\n" +
-                                          "You sense no deception from the Mystic, but there is much they're not revealing. The Crystal in your hand pulses, neither brightening nor dimming in their presence.");
+            // Add Chapter 2 entity for combat
+            Entity harbinger = new Entity("The Harbinger", 12, 20,
+                                "An ancient entity of darkness that returns every millennium. Its massive form shifts constantly between states of matter, with glowing crimson eyes fixed upon you.", "shadow");
+            harbinger.setCombatEntity(true);
             
-            // Node 8 - The Ritual Begins
-            StoryNode node8 = new StoryNode(8, "As Midnight Approaches", 
-                                          "The three moons rise higher in the sky, their alignment nearly complete. The air feels charged with conflicting energies - the pure light of the Crystal and the encroaching darkness of the Harbinger.\n\n" +
-                                          "You take your position at the center of the stone circle. Lyra, Elder Thorne, and the other ritual participants form a protective ring around you. If you accepted the Mystic's help, they stand at a key position in the circle, their smaller crystal raised.\n\n" +
-                                          "\"Begin the intonation,\" Lyra instructs. \"Focus on the Crystal and the words of binding.\"");
-            
-            // Node 9 - The Harbinger Manifests
-            StoryNode node9 = new StoryNode(9, "The Shadow Takes Form", 
-                                          "As you speak the ancient words, the Crystal flares with blinding light. The shadows surrounding Mistaven coalesce, forming a massive, towering figure of darkness that looms over the village.\n\n" +
-                                          "The Harbinger has arrived.\n\n" +
-                                          "Its form is difficult to comprehend - constantly shifting, yet with a suggestion of a humanoid shape. Two points of crimson light serve as eyes, focusing on you and the Crystal with malevolent intent.\n\n" +
-                                          "\"The binding will not hold,\" a voice echoes, seeming to come from everywhere at once. \"This world is mine to cleanse, as it has been every millennium.\"");
-            
-            // Node 10 - The Final Challenge
-            StoryNode node10 = new StoryNode(10, "Confrontation", 
-                                           "The Harbinger extends a tendril of darkness toward you, bypassing the protective circle. Where it touches, the ground withers and cracks.\n\n" +
-                                           "\"You have a choice, Prophet,\" the entity says. \"Join me, and I will spare this village. Resist, and watch as everything you love is consumed.\"\n\n" +
-                                           "You feel a pressure in your mind - the Harbinger attempting to influence your thoughts. The Crystal pulses rapidly in response, its light flickering as if struggling against the darkness.\n\n" +
-                                           "In this moment, you remember the third vision shown by the Warden - the unexpected alliance. Was that truly the prophecy, or is the Harbinger trying to manipulate you?");
-            
-            // Final nodes - different endings
-            
-            // Node 11 - Ending: Binding the Harbinger
-            StoryNode node11 = new StoryNode(11, "The Binding", 
-                                           "You raise the Crystal high, channeling all your will and energy into it. Its light expands outward, forming a dome of pure energy around the stone circle.\n\n" +
-                                           "The ancient words flow from your lips, each syllable charged with power. The Harbinger roars in defiance, its form contorting as the binding takes effect.\n\n" +
-                                           "\"This is not the end,\" it warns as its form begins to dissipate. \"I am eternal. I will return.\"\n\n" +
-                                           "With a final surge of will, you complete the ritual. The Harbinger's form collapses, drawn into the Crystal itself, which now contains a swirling darkness at its core.\n\n" +
-                                           "The ritual has succeeded, but at great cost. You feel drained, aged, as if years of your life were consumed in that final moment. The Crystal, now containing both light and shadow, must be protected until the next alignment in a thousand years.",
-                                           true);
-            
-            // Node 12 - Ending: The Transformation
-            StoryNode node12 = new StoryNode(12, "A Different Path", 
-                                           "You lower the Crystal, stepping forward to address the Harbinger directly.\n\n" +
-                                           "\"There is another way,\" you say, remembering the vision. \"Not binding, but transformation.\"\n\n" +
-                                           "The Harbinger pauses, its crimson eyes studying you with newfound interest.\n\n" +
-                                           "You raise the Crystal, not as a weapon but as a channel. \"This land needs change, not destruction. Let me guide your power.\"\n\n" +
-                                           "What follows is neither victory nor defeat, but something unprecedented. The Crystal glows with blinding intensity as you channel the Harbinger's energy through it, transforming the destructive force into one of renewal.\n\n" +
-                                           "The landscape changes - dead trees fall to nourish new growth, stagnant waters are cleared, long-dormant seeds awaken in the soil. It is painful, it is change, but it is not the end.",
-                                           true);
-            
-            // Node 13 - Failed Ending
-            StoryNode node13 = new StoryNode(13, "Darkness Triumphant", 
-                                           "The pressure in your mind becomes overwhelming. The Crystal slips from your grasp, falling to the ground with a crystalline sound that seems to echo endlessly.\n\n" +
-                                           "The Harbinger's laughter resonates through the village as darkness engulfs everything. The protective circle falters and breaks, your allies falling one by one.\n\n" +
-                                           "In your final moments of clarity, you realize your mistake. The true prophecy was not what you thought, and now the world will pay the price for your error.\n\n" +
-                                           "Darkness falls. The age of the Harbinger begins.",
-                                           true);
-            
-            // Create entities
-            Entity shadowWraith = new Entity("Shadow Wraith", 7, 8, 
-                                           "A semi-corporeal manifestation of the Harbinger's influence, bringing fear and despair.");
-            
-            Entity harbinger = new Entity("The Harbinger", 10, 15, 
-                                        "An ancient entity of darkness that returns every millennium to 'cleanse' the world. Its true nature and motivations remain mysterious.");
-            
-            // Add entities to nodes
-            node5.setEntity(shadowWraith);
-            node9.setEntity(harbinger);
-            
-            // Add choices to nodes
-            node1.addChoice(new Choice("Help prepare the ritual site", 2));
-            node1.addChoice(new Choice("Meditate with the Crystal to strengthen your connection", 2));
-            
-            node2.addChoice(new Choice("Study the ritual instructions carefully", 3));
-            node2.addChoice(new Choice("Ask Keeper Lyra for more information about the Harbinger", 3));
-            
-            node3.addChoice(new Choice("Approach the afflicted guard with the Crystal", 4));
-            node3.addChoice(new Choice("Ask Keeper Lyra how to help him", 4));
-            
-            node4.addChoice(new Choice("Return to your ritual preparations", 5));
-            node4.addChoice(new Choice("Check if others in the village show signs of corruption", 5));
-            
-            node5.addChoice(new Choice("Use the Crystal to repel the Shadow Wraiths", 6));
-            node5.addChoice(new Choice("Focus on completing the ritual preparations", 6));
-            
-            node6.addChoice(new Choice("Welcome the Mystic's help", 7));
-            node6.addChoice(new Choice("Question the Mystic's intentions", 7));
-            
-            node7.addChoice(new Choice("Accept the Mystic's assistance for the ritual", 8));
-            node7.addChoice(new Choice("Thank the Mystic but decline their direct involvement", 8));
-            
-            node8.addChoice(new Choice("Begin the ritual as instructed", 9));
-            node8.addChoice(new Choice("Modify the ritual based on your prophetic insights", 9, "Prophet's Staff"));
-            
-            node9.addChoice(new Choice("Continue the binding ritual as planned", 10));
-            node9.addChoice(new Choice("Attempt to communicate with the Harbinger", 10));
-            
-            node10.addChoice(new Choice("Complete the binding ritual to imprison the Harbinger", 11));
-            node10.addChoice(new Choice("Attempt to transform the Harbinger's energy as seen in your vision", 12));
-            node10.addChoice(new Choice("Lower your defenses and listen to the Harbinger's offer", 13));
-            
-            // Add nodes to the story
-            story.addNode(node1);
-            story.addNode(node2);
-            story.addNode(node3);
-            story.addNode(node4);
-            story.addNode(node5);
-            story.addNode(node6);
-            story.addNode(node7);
-            story.addNode(node8);
-            story.addNode(node9);
-            story.addNode(node10);
-            story.addNode(node11);
-            story.addNode(node12);
-            story.addNode(node13);
-            
-            // Set the starting node
-            story.setStartingNodeId(1);
-            
-            System.out.println("Chapter 2 story created successfully.");
+            // Parse JSON utility method
             return story;
-            
         } catch (Exception e) {
-            System.err.println("ERROR while creating Chapter 2 story: " + e.getMessage());
+            System.err.println("Error creating Chapter 2 story: " + e.getMessage());
             e.printStackTrace();
-            return createFallbackStory();
+            return null;
         }
     }
     
-    /**
-     * Creates a simple fallback story in case of errors
-     */
-    private static Story createFallbackStory() {
-        Story fallback = new Story("The Ancient Prophecy - Emergency Fallback", 
-                                 "A simplified version loaded due to an error.");
-        
-        StoryNode intro = new StoryNode(1, "Continuation", 
-                                       "After your previous journey, you continue your quest. The Crystal of Truth glows in your hand, guiding you forward.");
-        
-        StoryNode end = new StoryNode(2, "To Be Continued", 
-                                     "Your adventure will continue in the next chapter...", true);
-        
-        intro.addChoice(new Choice("Continue", 2));
-        
-        fallback.addNode(intro);
-        fallback.addNode(end);
-        
-        return fallback;
-    }
-
     /**
      * Simulates parsing a JSON file
      * In a real implementation, use a JSON library

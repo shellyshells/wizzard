@@ -1,10 +1,11 @@
-// ProphecyUI.java
+// ProphecyUI.java - Updated with combat integration
 package view;
 
 import controller.GameController;
 import model.Choice;
 import model.StoryNode;
 import model.Character;
+import model.Entity;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -12,9 +13,7 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Main interface for the visual novel
@@ -318,8 +317,13 @@ public class ProphecyUI extends JFrame {
         statsPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 
         // Character attributes
-        Map<String, Integer> attributes = character.getAttributes();
-        for (Map.Entry<String, Integer> attribute : attributes.entrySet()) {
+        java.util.Map<String, Integer> attributes = character.getAttributes();
+        for (java.util.Map.Entry<String, Integer> attribute : attributes.entrySet()) {
+            // Skip display of temporary or system attributes
+            if (attribute.getKey().equals("defense_bonus")) {
+                continue;
+            }
+            
             JPanel attrPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
             attrPanel.setOpaque(false);
 
@@ -391,6 +395,12 @@ public class ProphecyUI extends JFrame {
      * @param node The node to display
      */
     public void displayNode(StoryNode node) {
+        // Check if this node triggers combat
+        if (gameController.hasCombatTriggered()) {
+            initiateCombat();
+            return;
+        }
+        
         // Update story text
         storyTextArea.setText(node.getTitle() + "\n\n" + node.getText());
         storyTextArea.setCaretPosition(0);
@@ -456,8 +466,11 @@ public class ProphecyUI extends JFrame {
                     // Handle the player's choice
                     StoryNode nextNode = gameController.makeChoice(choiceIndex);
                     if (nextNode != null) {
-                        // If the node triggers an encounter, handle it first
-                        if (choice.triggersEncounter() && nextNode.hasEntity()) {
+                        // If the next node has combat triggered, handle it first
+                        if (gameController.hasCombatTriggered()) {
+                            initiateCombat();
+                        } else if (choice.triggersEncounter() && nextNode.hasEntity()) {
+                            // For traditional encounters - kept for backward compatibility
                             handleEncounter(nextNode);
                         } else {
                             displayNode(nextNode);
@@ -475,6 +488,43 @@ public class ProphecyUI extends JFrame {
 
         choicesPanel.revalidate();
         choicesPanel.repaint();
+    }
+    
+    /**
+     * Initiates a combat encounter on the current node
+     */
+    private void initiateCombat() {
+        StoryNode currentNode = gameController.getCurrentNode();
+        if (!currentNode.hasEntity()) {
+            displayNode(currentNode);
+            return;
+        }
+        
+        Entity entity = currentNode.getEntity();
+        
+        // Show combat screen
+        CombatScreen combatScreen = new CombatScreen(this, gameController.getCharacter(), entity);
+        boolean victorious = combatScreen.startCombat();
+        
+        // Record result
+        gameController.recordCombatResult(entity, victorious);
+        
+        // Update node combat trigger state to prevent re-triggering
+        currentNode.setCombatTriggered(false);
+        
+        // If player was defeated and doesn't have energy, show game over
+        if (!victorious && gameController.getCharacter().getAttribute("energy") <= 0) {
+            JOptionPane.showMessageDialog(this, 
+                "You have been defeated by " + entity.getName() + ".\n\n" +
+                "Your prophetic journey has come to an end.", 
+                "Defeat", JOptionPane.WARNING_MESSAGE);
+            
+            // Return to menu
+            returnToMenu();
+        } else {
+            // Continue with the story
+            displayNode(currentNode);
+        }
     }
     
     /**
@@ -500,7 +550,7 @@ public class ProphecyUI extends JFrame {
     }
     
     /**
-     * Handles an encounter with an entity
+     * Handles a traditional encounter with an entity (backward compatibility)
      */
     private void handleEncounter(StoryNode node) {
         if (!node.hasEntity()) {
