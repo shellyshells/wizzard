@@ -350,6 +350,14 @@ public class StoryLoader {
     }
     
     /**
+     * Creates the tutorial story
+     * @return The tutorial story
+     */
+    public static Story createTutorialStory() {
+        return TutorialStory.createStory();
+    }
+    
+    /**
      * Simulates parsing a JSON file
      * In a real implementation, use a JSON library
      */

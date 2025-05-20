@@ -21,6 +21,9 @@ public class Entity {
     private String combatType; // The type of combat this entity specializes in
     private Map<String, Integer> resistances; // Resistance to different types of attacks
     private List<String> specialAbilities; // List of special abilities the entity can use
+    private int health;
+    private int damage;
+    private String type;
 
     /**
      * Constructor with all parameters
@@ -293,5 +296,22 @@ public class Entity {
     
     public void setDialogueStyle(String dialogueStyle) {
         this.dialogueStyle = dialogueStyle;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public int getDamage() {
+        return damage;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    @Override
+    public String toString() {
+        return name + " (" + type + ")";
     }
 }

@@ -12,9 +12,9 @@ import java.util.Map;
 public class StoryNode {
     private int id;
     private String title;
-    private String text;
-    private List<Choice> availableChoices;
-    private boolean isEnding;
+    private String content;
+    private List<Choice> choices;
+    private boolean isEndNode;
     private Entity entity; // For nodes with character encounters
     private Map<String, Integer> requiredAttributes; // Attributes needed to unlock certain choices
     private String backgroundImage; // Path to background image for this node
@@ -25,15 +25,15 @@ public class StoryNode {
      * 
      * @param id The unique identifier for this node
      * @param title The title of the node
-     * @param text The narrative text content
-     * @param isEnding Whether this node is an ending
+     * @param content The narrative text content
+     * @param isEndNode Whether this node is an ending
      */
-    public StoryNode(int id, String title, String text, boolean isEnding) {
+    public StoryNode(int id, String title, String content, boolean isEndNode) {
         this.id = id;
         this.title = title;
-        this.text = text;
-        this.availableChoices = new ArrayList<>();
-        this.isEnding = isEnding;
+        this.content = content;
+        this.choices = new ArrayList<>();
+        this.isEndNode = isEndNode;
         this.requiredAttributes = new HashMap<>();
         this.combatTriggered = false;
     }
@@ -41,8 +41,8 @@ public class StoryNode {
     /**
      * Simple constructor without specifying if it's an ending
      */
-    public StoryNode(int id, String title, String text) {
-        this(id, title, text, false);
+    public StoryNode(int id, String title, String content) {
+        this(id, title, content, false);
     }
 
     /**
@@ -51,7 +51,7 @@ public class StoryNode {
      * @param choice The choice to add
      */
     public void addChoice(Choice choice) {
-        availableChoices.add(choice);
+        choices.add(choice);
     }
 
     // Getters and setters
@@ -63,16 +63,16 @@ public class StoryNode {
         return title;
     }
 
-    public String getText() {
-        return text;
+    public String getContent() {
+        return content;
     }
 
-    public List<Choice> getAvailableChoices() {
-        return availableChoices;
+    public List<Choice> getChoices() {
+        return choices;
     }
 
-    public boolean isEnding() {
-        return isEnding;
+    public boolean isEndNode() {
+        return isEndNode;
     }
 
     public void setEntity(Entity entity) {
@@ -134,8 +134,16 @@ public class StoryNode {
         return true;
     }
 
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public void setEndNode(boolean endNode) {
+        isEndNode = endNode;
+    }
+
     @Override
     public String toString() {
-        return "Node " + id + ": " + title + " (Ending: " + isEnding + ")";
+        return title;
     }
 }

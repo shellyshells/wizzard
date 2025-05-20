@@ -14,6 +14,8 @@ import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Insets;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -30,6 +32,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.GridBagConstraints;
+import javax.swing.JScrollPane;
 
 import controller.GameController;
 import controller.ProgressTracker;
@@ -116,6 +120,8 @@ public class MainMenuUI extends JFrame {
         JButton mapButton = createStyledButton("Path Map");
         JButton quitButton = createStyledButton("Leave This Realm");
         JButton settingsButton = createStyledButton("Settings");
+        JButton editorButton = createStyledButton("Story Editor");
+        JButton tutorialButton = createStyledButton("Tutorial");
 
         // Button actions
         playButton.addActionListener(e -> showChapterSelect());
@@ -124,6 +130,8 @@ public class MainMenuUI extends JFrame {
         mapButton.addActionListener(e -> showMap());
         quitButton.addActionListener(e -> System.exit(0));
         settingsButton.addActionListener(e -> showSettings());
+        editorButton.addActionListener(e -> openStoryEditor());
+        tutorialButton.addActionListener(e -> startTutorial());
 
         // Add buttons with spacing
         buttonPanel.add(Box.createRigidArea(new Dimension(0, 80)));
@@ -132,6 +140,9 @@ public class MainMenuUI extends JFrame {
         addButtonWithSpacing(buttonPanel, helpButton);
         addButtonWithSpacing(buttonPanel, mapButton);
         addButtonWithSpacing(buttonPanel, quitButton);
+        addButtonWithSpacing(buttonPanel, settingsButton);
+        addButtonWithSpacing(buttonPanel, editorButton);
+        addButtonWithSpacing(buttonPanel, tutorialButton);
 
         // Center the button panel
         JPanel centerPanel = new JPanel(new GridBagLayout());
@@ -628,5 +639,19 @@ public class MainMenuUI extends JFrame {
         getContentPane().add(mapScreen);
         revalidate();
         repaint();
+    }
+
+    private void openStoryEditor() {
+        SwingUtilities.invokeLater(() -> {
+            StoryEditorUI editor = new StoryEditorUI();
+            editor.setVisible(true);
+        });
+    }
+
+    private void startTutorial() {
+        SwingUtilities.invokeLater(() -> {
+            TutorialUI tutorial = new TutorialUI();
+            tutorial.setVisible(true);
+        });
     }
 }
