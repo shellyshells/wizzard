@@ -1,7 +1,6 @@
 package view;
 
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -15,6 +14,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 public class MapScreen extends JPanel {
@@ -53,7 +53,6 @@ public class MapScreen extends JPanel {
         backButton.setPreferredSize(new Dimension(260, 44));
         backButton.setBorder(new EmptyBorder(8, 24, 8, 24));
         backButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        backButton.setContentAreaFilled(false);
         backButton.setOpaque(true);
         backButton.setBorder(new javax.swing.border.LineBorder(new Color(100, 70, 130), 2, true));
         backButton.addMouseListener(new MouseAdapter() {
@@ -67,8 +66,9 @@ public class MapScreen extends JPanel {
             }
         });
         backButton.addActionListener(e -> {
-            CardLayout cl = (CardLayout) getParent().getLayout();
-            cl.show(getParent(), "MAIN_MENU");
+            SwingUtilities.getWindowAncestor(this).dispose();
+            MainMenuUI menuUI = new MainMenuUI();
+            menuUI.setVisible(true);
         });
         // Center the button at the top
         JPanel backPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 16));

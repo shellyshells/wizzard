@@ -1,19 +1,42 @@
 // ProphecyUI.java - Updated with combat integration
 package view;
 
-import controller.GameController;
-import model.Choice;
-import model.StoryNode;
-import model.Character;
-import model.Entity;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Insets;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+
+import controller.GameController;
+import model.Character;
+import model.Choice;
+import model.Entity;
+import model.StoryNode;
 
 /**
  * Main interface for the visual novel
@@ -402,20 +425,20 @@ public class ProphecyUI extends JFrame {
         }
         
         // Update story text
-        storyTextArea.setText(node.getTitle() + "\n\n" + node.getText());
+        storyTextArea.setText(node.getTitle() + "\n\n" + node.getContent());
         storyTextArea.setCaretPosition(0);
 
         // Update choices
         choicesPanel.removeAll();
 
-        if (node.isEnding()) {
+        if (node.isEndNode()) {
             // If it's an ending node, show a dialog with the ending and offer to restart or go to menu
             SwingUtilities.invokeLater(() -> {
-                String dialogTitle = isPositiveEnding(node.getTitle(), node.getText()) ? 
+                String dialogTitle = isPositiveEnding(node.getTitle(), node.getContent()) ? 
                                    "Prophecy Fulfilled" : "Dark Outcome";
                 
-                EndingDialog endDialog = new EndingDialog(this, dialogTitle, node.getText(), 
-                                                      isPositiveEnding(node.getTitle(), node.getText()));
+                EndingDialog endDialog = new EndingDialog(this, dialogTitle, node.getContent(), 
+                                                      isPositiveEnding(node.getTitle(), node.getContent()));
                 
                 if (endDialog.showAndWait()) {
                     // Player wants to restart
@@ -436,7 +459,7 @@ public class ProphecyUI extends JFrame {
             choicesPanel.add(restartButton);
         } else {
             // For regular nodes, display available choices
-            List<Choice> availableChoices = node.getAvailableChoices();
+            List<Choice> availableChoices = node.getChoices();
             JLabel choicePrompt = new JLabel("What will you do?");
             choicePrompt.setForeground(ACCENT_COLOR);
             choicePrompt.setFont(BUTTON_FONT);
@@ -469,9 +492,6 @@ public class ProphecyUI extends JFrame {
                         // If the next node has combat triggered, handle it first
                         if (gameController.hasCombatTriggered()) {
                             initiateCombat();
-                        } else if (choice.triggersEncounter() && nextNode.hasEntity()) {
-                            // For traditional encounters - kept for backward compatibility
-                            handleEncounter(nextNode);
                         } else {
                             displayNode(nextNode);
                         }
@@ -494,36 +514,30 @@ public class ProphecyUI extends JFrame {
      * Initiates a combat encounter on the current node
      */
     private void initiateCombat() {
-        StoryNode currentNode = gameController.getCurrentNode();
-        if (!currentNode.hasEntity()) {
-            displayNode(currentNode);
-            return;
-        }
-        
-        Entity entity = currentNode.getEntity();
-        
-        // Show combat screen
-        CombatScreen combatScreen = new CombatScreen(this, gameController.getCharacter(), entity);
-        boolean victorious = combatScreen.startCombat();
-        
-        // Record result
-        gameController.recordCombatResult(entity, victorious);
-        
-        // Update node combat trigger state to prevent re-triggering
-        currentNode.setCombatTriggered(false);
-        
-        // If player was defeated and doesn't have energy, show game over
-        if (!victorious && gameController.getCharacter().getAttribute("energy") <= 0) {
-            JOptionPane.showMessageDialog(this, 
-                "You have been defeated by " + entity.getName() + ".\n\n" +
-                "Your prophetic journey has come to an end.", 
-                "Defeat", JOptionPane.WARNING_MESSAGE);
+        if (gameController.getCurrentNode().hasEntity()) {
+            Entity enemy = gameController.getCurrentNode().getEntity();
+            CombatScreen combatScreen = new CombatScreen(this, gameController.getCharacter(), enemy);
+            boolean victorious = combatScreen.startCombat();
             
-            // Return to menu
-            returnToMenu();
-        } else {
-            // Continue with the story
-            displayNode(currentNode);
+            // Record combat result
+            gameController.recordCombatResult(enemy, victorious);
+            
+            // Update node combat trigger state to prevent re-triggering
+            gameController.getCurrentNode().setCombatTriggered(false);
+            
+            // If player was defeated and doesn't have energy, show game over
+            if (!victorious && gameController.getCharacter().getAttribute("energy") <= 0) {
+                JOptionPane.showMessageDialog(this, 
+                    "You have been defeated by " + enemy.getName() + ".\n\n" +
+                    "Your prophetic journey has come to an end.", 
+                    "Defeat", JOptionPane.WARNING_MESSAGE);
+                
+                // Return to menu
+                returnToMenu();
+            } else {
+                // Continue with the story
+                displayNode(gameController.getCurrentNode());
+            }
         }
     }
     
@@ -547,29 +561,6 @@ public class ProphecyUI extends JFrame {
         }
         
         return positiveCount > negativeCount;
-    }
-    
-    /**
-     * Handles a traditional encounter with an entity (backward compatibility)
-     */
-    private void handleEncounter(StoryNode node) {
-        if (!node.hasEntity()) {
-            displayNode(node);
-            return;
-        }
-        
-        EncounterScreen encounterScreen = new EncounterScreen(
-            this, gameController.getCharacter(), node.getEntity());
-        
-        boolean success = encounterScreen.startEncounter();
-        
-        if (success) {
-            // Player succeeded in the encounter
-            displayNode(node);
-        } else {
-            // Player failed the encounter - find alternative path or failure node
-            displayNode(node); // For now, just continue to the same node
-        }
     }
 
     /**

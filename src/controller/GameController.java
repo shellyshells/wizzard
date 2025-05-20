@@ -114,11 +114,11 @@ public class GameController {
      * @return The next node, or null if the choice is invalid
      */
     public StoryNode makeChoice(int choiceIndex) {
-        if (choiceIndex < 0 || choiceIndex >= currentNode.getAvailableChoices().size()) {
+        if (choiceIndex < 0 || choiceIndex >= currentNode.getChoices().size()) {
             return null;
         }
 
-        Choice selectedChoice = currentNode.getAvailableChoices().get(choiceIndex);
+        Choice selectedChoice = currentNode.getChoices().get(choiceIndex);
         
         // Check if this choice requires an item
         if (selectedChoice.hasItemRequirement() && 
@@ -129,7 +129,7 @@ public class GameController {
         // Check if the choice triggers combat
         boolean triggersEncounter = selectedChoice.triggersEncounter();
         
-        int nextNodeId = selectedChoice.getDestinationNodeId();
+        int nextNodeId = selectedChoice.getTargetNodeId();
         currentNode = story.getNodeById(nextNodeId);
 
         markNodeVisited(currentNode.getId());
