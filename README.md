@@ -2,6 +2,8 @@
 
 ![Ancient Prophecy Logo](assets/logo.png)
 
+[VERSION FRANCAISE](README_fr.md)
+
 A narrative-driven Java adventure game where you play as a prophetic seer who has received visions of an impending catastrophe. Navigate through a mystical world, make decisions that shape your destiny, and use your powers to prevent the approaching doom.
 
 ## Table of Contents
@@ -52,16 +54,12 @@ git clone https://github.com/yourusername/ancient-prophecy.git
 2. Navigate to the project directory:
 ```bash
 cd ancient-prophecy
+cd src
 ```
 
-3. Compile the project:
+3. Run the game:
 ```bash
-javac -d out src/Main.java src/controller/*.java src/model/*.java src/view/*.java
-```
-
-4. Run the game:
-```bash
-java -cp out Main
+java Main.java
 ```
 
 Alternatively, you can use an IDE like IntelliJ IDEA or Eclipse to import and run the project.
@@ -218,3 +216,4 @@ The Ancient Prophecy was created as part of an educational project.
 ---
 
 *© 2025 - The Ancient Prophecy Team*
+

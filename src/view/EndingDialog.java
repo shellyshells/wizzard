@@ -21,6 +21,22 @@ public class EndingDialog extends JDialog {
     
     private boolean restart = false;
     private final CountDownLatch latch = new CountDownLatch(1);
+    private Runnable restartListener;
+    private Runnable menuListener;
+    
+    /**
+     * Adds a listener for the restart action
+     */
+    public void addRestartListener(Runnable listener) {
+        this.restartListener = listener;
+    }
+    
+    /**
+     * Adds a listener for the menu action
+     */
+    public void addMenuListener(Runnable listener) {
+        this.menuListener = listener;
+    }
     
     /**
      * Creates an ending dialog
@@ -30,11 +46,19 @@ public class EndingDialog extends JDialog {
      * @param positive Whether this is a positive ending
      */
     public EndingDialog(JFrame parent, String title, String message, boolean positive) {
-        super(parent, title, true);
+        super(parent, title, false);
         
         setSize(700, 500);
         setLocationRelativeTo(parent);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        
+        // Add window listener to handle window closing
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                latch.countDown();
+            }
+        });
         
         initComponents(message, positive);
     }
@@ -116,6 +140,9 @@ public class EndingDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 restart = true;
+                if (restartListener != null) {
+                    restartListener.run();
+                }
                 latch.countDown();
                 dispose();
             }
@@ -127,6 +154,9 @@ public class EndingDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 restart = false;
+                if (menuListener != null) {
+                    menuListener.run();
+                }
                 latch.countDown();
                 dispose();
             }
@@ -185,5 +215,12 @@ public class EndingDialog extends JDialog {
             Thread.currentThread().interrupt();
         }
         return restart;
+    }
+    
+    /**
+     * Shows the dialog without blocking the main UI
+     */
+    public void showDialog() {
+        setVisible(true);
     }
 }

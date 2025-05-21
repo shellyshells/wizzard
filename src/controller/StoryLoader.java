@@ -225,10 +225,10 @@ public class StoryLoader {
         
         node9.addChoice(new Choice("Accept the Mystic's help", 10));
         node9.addChoice(new Choice("Politely decline and continue alone", 10));
-        node9.addChoice(new Choice("Confront the Mystic with suspicion", 10, "Oracle's Eye"));
+        node9.addChoice(new Choice("Confront the Mystic with suspicion", 10, "Oracle's Eye", true));
         
         node10.addChoice(new Choice("Follow the luminescent path deeper into the caves", 11));
-        node10.addChoice(new Choice("Use your prophetic abilities to sense the correct path", 11, "Prophet's Staff"));
+        node10.addChoice(new Choice("Use your prophetic abilities to sense the correct path", 11, "Prophet's Staff", false));
         
         node11.addChoice(new Choice("Accept the Warden's trial", 12));
         

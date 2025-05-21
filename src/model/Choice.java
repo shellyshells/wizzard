@@ -43,28 +43,21 @@ public class Choice {
      * 
      * @param text The text describing the choice
      * @param targetNodeId The ID of the node this choice leads to
-     * @param requiredItem The item required to select this choice
-     */
-    public Choice(String text, int targetNodeId, String requiredItem) {
-        this.text = text;
-        this.targetNodeId = targetNodeId;
-        this.triggersEncounter = false;
-        this.requiredItem = requiredItem;
-    }
-
-    /**
-     * Constructor with skill requirement
-     * 
-     * @param text The text describing the choice
-     * @param targetNodeId The ID of the node this choice leads to
      * @param requiredSkill The skill required to select this choice
+     * @param requiredItem The item required to select this choice
+     * @param isItem Whether the requirement is an item (true) or a skill (false)
      */
-    public Choice(String text, int targetNodeId, String requiredSkill) {
+    public Choice(String text, int targetNodeId, String requiredItemOrSkill, boolean isItem) {
+        if (isItem) {
+            this.requiredItem = requiredItemOrSkill;
+            this.requiredSkill = null;
+        } else {
+            this.requiredSkill = requiredItemOrSkill;
+            this.requiredItem = null;
+        }
         this.text = text;
         this.targetNodeId = targetNodeId;
-        this.requiredSkill = requiredSkill;
         this.triggersEncounter = false;
-        this.requiredItem = null;
     }
 
     // Getters

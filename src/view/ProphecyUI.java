@@ -116,6 +116,12 @@ public class ProphecyUI extends JFrame {
         // Initialize components
         initComponents();
 
+        // Defensive: Remove all content before setting new content pane
+        getContentPane().removeAll();
+        setContentPane(mainPanel);
+        revalidate();
+        repaint();
+
         // Display the current node
         displayNode(gameController.getCurrentNode());
     }
@@ -203,9 +209,6 @@ public class ProphecyUI extends JFrame {
         // Menu panel
         JPanel menuPanel = createMenuPanel();
         mainPanel.add(menuPanel, BorderLayout.EAST);
-
-        // Set content pane
-        setContentPane(mainPanel);
     }
 
     /**
@@ -433,22 +436,26 @@ public class ProphecyUI extends JFrame {
 
         if (node.isEndNode()) {
             // If it's an ending node, show a dialog with the ending and offer to restart or go to menu
-            SwingUtilities.invokeLater(() -> {
-                String dialogTitle = isPositiveEnding(node.getTitle(), node.getContent()) ? 
-                                   "Prophecy Fulfilled" : "Dark Outcome";
-                
-                EndingDialog endDialog = new EndingDialog(this, dialogTitle, node.getContent(), 
-                                                      isPositiveEnding(node.getTitle(), node.getContent()));
-                
-                if (endDialog.showAndWait()) {
-                    // Player wants to restart
-                    gameController.startGame();
-                    displayNode(gameController.getCurrentNode());
-                } else {
-                    // Player wants to return to main menu
-                    returnToMenu();
-                }
+            String dialogTitle = isPositiveEnding(node.getTitle(), node.getContent()) ? 
+                               "Prophecy Fulfilled" : "Dark Outcome";
+            
+            EndingDialog endDialog = new EndingDialog(this, dialogTitle, node.getContent(), 
+                                                  isPositiveEnding(node.getTitle(), node.getContent()));
+            
+            // Add action listeners to the buttons
+            endDialog.addRestartListener(() -> {
+                gameController.startGame();
+                displayNode(gameController.getCurrentNode());
+                endDialog.dispose();
             });
+            
+            endDialog.addMenuListener(() -> {
+                returnToMenu();
+                endDialog.dispose();
+            });
+            
+            // Show dialog without blocking
+            endDialog.showDialog();
             
             // Add a restart button in case dialog fails
             JButton restartButton = createChoiceButton("Continue Your Journey");
@@ -508,6 +515,9 @@ public class ProphecyUI extends JFrame {
 
         choicesPanel.revalidate();
         choicesPanel.repaint();
+        // Defensive: Ensure main panel is refreshed to prevent any overlap
+        mainPanel.revalidate();
+        mainPanel.repaint();
     }
     
     /**
